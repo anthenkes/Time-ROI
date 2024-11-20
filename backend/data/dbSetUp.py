@@ -1,9 +1,9 @@
 import sqlite3
 from datetime import datetime
 
-# Initialize the SQLite database
-def initialize_database():
-    with sqlite3.connect("task_log.db") as connection:
+# Function to initialize the SQLite database with a given path
+def initialize_database(db_path):
+    with sqlite3.connect(db_path) as connection:
         cursor = connection.cursor()
 
         # Create table with specified columns
