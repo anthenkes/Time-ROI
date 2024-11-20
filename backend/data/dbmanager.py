@@ -1,13 +1,16 @@
+import os
 import sqlite3, logging
 from datetime import datetime
-from dbSetUp import initialize_database
+from models.task import Task
+from backend.data.dbSetUp import initialize_database
 
 class DatabaseManager:
-    def __init__(self, logger: logging.Logger, db_path="task_log.db"):
+    def __init__(self, logger: logging.Logger, db_path=None):
         self.logger = logger
-        self.db_path = db_path
+        self.db_path = os.path.join(os.path.dirname(__file__), "db/task_log.db") if db_path is None else db_path
         if not self._database_exists():
-            initialize_database()
+            self.logger.debug("initializing database")
+            initialize_database(self.db_path)
 
     def _connect(self):
                 """
@@ -33,8 +36,7 @@ class DatabaseManager:
             return False 
         
 
-    def add_task_entry(self, date, task, category, time_investment, start_time, end_time, 
-                        immediate_benefit, future_impact, personal_fulfillment, progress, output_score, roi, notes=""):
+    def add_task_entry(self, task: Task):
         """
         Adds a new task entry to the TaskLog table.
         """
@@ -43,6 +45,7 @@ class DatabaseManager:
             return False
 
         try:
+            task.validate()
             with connection:
                 cursor = connection.cursor()
                 cursor.execute('''
@@ -50,8 +53,8 @@ class DatabaseManager:
                                             immediate_benefit, future_impact, personal_fulfillment, progress, 
                                             output_score, roi, notes)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (date, task, category, time_investment, start_time, end_time, 
-                        immediate_benefit, future_impact, personal_fulfillment, progress, output_score, roi, notes))
+                ''', (task.to_tuple()))
+                return cursor.lastrowid # Returns the last row id as a success indicator
         except sqlite3.Error as e:
             self.logger.error(f"An error occurred while adding the task entry: {e}")
             return False
