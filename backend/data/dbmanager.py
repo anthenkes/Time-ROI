@@ -8,9 +8,20 @@ class DatabaseManager:
     def __init__(self, logger: logging.Logger, db_path=None):
         self.logger = logger
         self.db_path = os.path.join(os.path.dirname(__file__), "db/task_log.db") if db_path is None else db_path
+        self._ensure_db_folder_exists()
         if not self._database_exists():
             self.logger.debug("initializing database")
             initialize_database(self.db_path)
+
+    def _ensure_db_folder_exists(self):
+        """
+        Ensures that the database folder exists.
+        """
+        db_folder = os.path.dirname(self.db_path)
+        if not os.path.exists(db_folder):
+            os.makedirs(db_folder)
+            self.logger.debug(f"Created database folder at {db_folder}")
+
 
     def _connect(self):
                 """
