@@ -33,6 +33,13 @@ class DatabaseManager:
                     self.logger.error(f"An error occurred while connecting to the database: {e}")
                     return None
     
+    
+    def get_connection(self):
+        """
+        Returns a connection object.
+        """
+        return self._connect() 
+    
 
     def _database_exists(self):
         """
