@@ -1,9 +1,10 @@
 import logging
-from PySide6.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget, QFormLayout, QLineEdit, QPushButton, QSpinBox, QDoubleSpinBox, QDateEdit, QTimeEdit, QTextEdit, QMessageBox
+from PySide6.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget, QFormLayout, QLineEdit, QPushButton, QSpinBox, QDoubleSpinBox, QDateEdit, QTimeEdit, QTextEdit, QMessageBox, QTabWidget
 from PySide6.QtCore import QDate, QTime, QTimer, Qt
 from PySide6.QtGui import QKeySequence, QShortcut
 from models.task import Task
 from backend.data.dbmanager import DatabaseManager
+from backend.graphs.graph_widget import GraphWidget
 
 class MainWindow(QMainWindow):
     def __init__(self, logger):
@@ -20,13 +21,17 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
         # Create a vertical layout
-        main_layout = QVBoxLayout()
+        main_layout = QVBoxLayout(central_widget)
 
         # Create a label for toast notifications
         self.toast_label = QLabel("")
         self.toast_label.setStyleSheet("background-color: green; color: black;")
         self.toast_label.setVisible(False)
         main_layout.addWidget(self.toast_label)
+
+        # Create a tab widget
+        self.tabs = QTabWidget()
+        main_layout.addWidget(self.tabs)
 
         # Create a form layout
         form_layout = QFormLayout()
@@ -85,11 +90,20 @@ class MainWindow(QMainWindow):
         submit_button.setToolTip("You can also press Ctrl+Enter to submit the form.")
         form_layout.addRow(submit_button)
 
-        #Add the form layout to the main layout
-        main_layout.addLayout(form_layout)
+        # #Add the form layout to the main layout
+        # main_layout.addLayout(form_layout)
 
-        # Set the layout
-        central_widget.setLayout(main_layout)
+        # # Set the layout
+        # central_widget.setLayout(main_layout)
+         # Add form layout to a tab
+        form_tab = QWidget()
+        form_tab.setLayout(form_layout)
+        self.tabs.addTab(form_tab, "Form")
+
+        # Add the graph widget as a tab
+        self.graph_tab = GraphWidget(self.db_manager)
+        self.tabs.addTab(self.graph_tab, "Graph")
+
 
         # Create a shortcut for Ctrl+Enter to submit the form
         submit_shortcut = QShortcut(QKeySequence(Qt.CTRL | Qt.Key_Return), self)
@@ -134,6 +148,7 @@ class MainWindow(QMainWindow):
                 self.logger.info(f"Task added successfully with ID {task_id}.")
                 self.show_toast("Task added successfully!")
                 self.clear_form()
+                self.graph_tab.update_plot()
             else:
                 raise Exception("Failed to add task to the database.")
         except Exception as e:
