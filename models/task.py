@@ -37,7 +37,6 @@ class Metrics:
     @staticmethod
     def _get_metrics_count():
         metrics = inspect.signature(Metrics).parameters
-        print(len(metrics))
         return len(metrics)
 class Task:
     def __init__(self, date: str, task: str, category: str, time_investment: int, start_time: str, end_time: str,
